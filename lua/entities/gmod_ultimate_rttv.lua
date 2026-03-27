@@ -34,6 +34,31 @@ function ENT:SetupDataTables()
 end
 
 if SERVER then
+    hook.Add( "SetupPlayerVisibility", "UltimateRTCam:SetupPlayerVisibility", function( ply, viewEntity )
+        if not urtcam.cvPVS:GetBool() then return end
+
+        local plyPos = ply:EyePos()
+        local closestDistanceSqr = math.huge
+        local curTV = nil
+
+        for _, ent in pairs( ents.FindInSphere( plyPos, 1024 ) ) do
+            if ent:GetClass() == "gmod_ultimate_rttv" and IsValid( urtcam.CamByID[ ent:GetID() ] ) then
+                local distSqr = plyPos:DistToSqr( ent:GetPos() )
+                if distSqr < closestDistanceSqr then
+                    curTV = ent
+                    closestDistanceSqr = distSqr
+                end
+            end
+        end
+
+        if curTV then
+            local camera = urtcam.CamByID[ curTV:GetID() ]
+            if not IsValid( camera ) then return end
+            local pos = camera:GetPos()
+            if ply:TestPVS( pos ) then return end -- this doesn't work well for some reason and returns true when it's clearly not in PVS
+            AddOriginToPVS( pos )
+        end
+    end )
     function ENT:Initialize()
         self:SetUseType( SIMPLE_USE )
 
@@ -230,33 +255,5 @@ if CLIENT then
         local ent = net.ReadEntity()
         if not IsValid( ent ) then return end
         ent.IsActive = not ent.IsActive
-    end)
-end
-
-if SERVER then
-    hook.Add( "SetupPlayerVisibility", "UltimateRTCam:SetupPlayerVisibility", function( ply, viewEntity )
-        if not urtcam.cvPVS:GetBool() then return end
-
-        local plyPos = ply:EyePos()
-        local closestDistanceSqr = math.huge
-        local curTV = nil
-
-        for _, ent in pairs( ents.FindInSphere( plyPos, 1024 ) ) do
-            if ent:GetClass() == "gmod_ultimate_rttv" and IsValid( urtcam.CamByID[ ent:GetID() ] ) then
-                local distSqr = plyPos:DistToSqr( ent:GetPos() )
-                if distSqr < closestDistanceSqr then
-                    curTV = ent
-                    closestDistanceSqr = distSqr
-                end
-            end
-        end
-
-        if curTV then
-            local camera = urtcam.CamByID[ curTV:GetID() ]
-            if not IsValid( camera ) then return end
-            local pos = camera:GetPos()
-            if ply:TestPVS( pos ) then return end -- this doesn't work well for some reason and returns true when it's clearly not in PVS
-            AddOriginToPVS( pos )
-        end
     end)
 end
