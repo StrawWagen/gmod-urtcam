@@ -234,19 +234,19 @@ if CLIENT then
 end
 
 if SERVER then
-    hook.Add("SetupPlayerVisibility", "UltimateRTCam:SetupPlayerVisibility", function(ply, viewEntity )
+    hook.Add( "SetupPlayerVisibility", "UltimateRTCam:SetupPlayerVisibility", function( ply, viewEntity )
         if not urtcam.cvPVS:GetBool() then return end
 
         local plyPos = ply:EyePos()
-        local curDistance = math.huge
+        local closestDistanceSqr = math.huge
         local curTV = nil
 
-        for k, v in pairs( ents.FindInSphere( plyPos, 1024 ) ) do
-            if v:GetClass() == "gmod_ultimate_rttv" and IsValid( urtcam.CamByID[ v:GetID() ] ) then
-                local d = plyPos:DistToSqr( v:GetPos() )
-                if d < curDistance then
-                    curTV = v
-                    curDistance = d
+        for _, ent in pairs( ents.FindInSphere( plyPos, 1024 ) ) do
+            if ent:GetClass() == "gmod_ultimate_rttv" and IsValid( urtcam.CamByID[ ent:GetID() ] ) then
+                local distSqr = plyPos:DistToSqr( ent:GetPos() )
+                if distSqr < closestDistanceSqr then
+                    curTV = ent
+                    closestDistanceSqr = distSqr
                 end
             end
         end
