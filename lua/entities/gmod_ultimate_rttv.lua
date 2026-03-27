@@ -34,8 +34,14 @@ function ENT:SetupDataTables()
 end
 
 if SERVER then
+    local rrtvCount = 0
+
     hook.Add( "SetupPlayerVisibility", "UltimateRTCam:SetupPlayerVisibility", function( ply, viewEntity )
+        if rrtvCount <= 0 then return end
         if not urtcam.cvPVS:GetBool() then return end
+
+        local nextCheck = ply.urtcamNextPVSCheck or 0
+        if CurTime() < nextCheck then return end
 
         local plyPos = ply:EyePos()
         local closestDistanceSqr = math.huge
@@ -52,14 +58,25 @@ if SERVER then
         end
 
         if curTV then
+            ply.urtcamNextPVSCheck = 0
             local camera = urtcam.CamByID[ curTV:GetID() ]
-            if not IsValid( camera ) then return end
+            if not IsValid( camera ) then
+                ply.urtcamNextPVSCheck = CurTime() + math.Rand( 0.1, 0.25 )
+                return
+            end
             local pos = camera:GetPos()
             if ply:TestPVS( pos ) then return end -- this doesn't work well for some reason and returns true when it's clearly not in PVS
             AddOriginToPVS( pos )
+        else
+            ply.urtcamNextPVSCheck = CurTime() + math.Rand( 0.1, 0.25 )
         end
     end )
     function ENT:Initialize()
+        rrtvCount = rrtvCount + 1
+        self:CallOnRemove( "rrtv_decrement_count", function()
+            rrtvCount = rrtvCount - 1
+        end )
+
         self:SetUseType( SIMPLE_USE )
 
         self:PhysicsInit( SOLID_VPHYSICS )
