@@ -47,7 +47,7 @@ if SERVER then
         local closestDistanceSqr = math.huge
         local curTV = nil
 
-        for _, ent in pairs( ents.FindInSphere( plyPos, 1024 ) ) do
+        for _, ent in pairs( ents.FindInSphere( plyPos, 512 ) ) do
             if ent:GetClass() == "gmod_ultimate_rttv" and IsValid( urtcam.CamByID[ ent:GetID() ] ) then
                 local distSqr = plyPos:DistToSqr( ent:GetPos() )
                 if distSqr < closestDistanceSqr then
@@ -58,17 +58,21 @@ if SERVER then
         end
 
         if curTV then
+            if not ply:TestPVS( curTV:GetPos() ) then -- tv is never gonna get rendered here!
+                ply.urtcamNextPVSCheck = CurTime() + math.Rand( 1, 2 )
+                return
+            end
             ply.urtcamNextPVSCheck = 0
             local camera = urtcam.CamByID[ curTV:GetID() ]
-            if not IsValid( camera ) then
-                ply.urtcamNextPVSCheck = CurTime() + math.Rand( 0.1, 0.25 )
+            if not IsValid( camera ) then -- dead link
+                ply.urtcamNextPVSCheck = CurTime() + math.Rand( 1, 2 )
                 return
             end
             local pos = camera:GetPos()
             if ply:TestPVS( pos ) then return end -- this doesn't work well for some reason and returns true when it's clearly not in PVS
             AddOriginToPVS( pos )
         else
-            ply.urtcamNextPVSCheck = CurTime() + math.Rand( 0.1, 0.25 )
+            ply.urtcamNextPVSCheck = CurTime() + math.Rand( 1, 2 )
         end
     end )
     function ENT:Initialize()
