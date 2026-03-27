@@ -65,6 +65,7 @@ if SERVER then
                 return
             end
             ply.urtcamNextPVSCheck = 0
+            local camera = urtcam.CamByID[ curTV:GetID() ]
             local pos = camera:GetPos()
             if ply:TestPVS( pos ) then return end -- this doesn't work well for some reason and returns true when it's clearly not in PVS
             AddOriginToPVS( pos )
