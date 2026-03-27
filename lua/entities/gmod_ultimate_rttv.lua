@@ -12,6 +12,8 @@ ENT.PrintName = "Ultimate RT Monitor"
 ENT.Type = "anim"
 ENT.Spawnable = false
 
+ENT.IsUltimateRTTV = true
+
 if SERVER then
     ENT.IDMode = 0
     ENT.ContraptionID = 0
@@ -48,7 +50,7 @@ if SERVER then
         local curTV = nil
 
         for _, ent in pairs( ents.FindInSphere( plyPos, 512 ) ) do
-            if ent:GetClass() == "gmod_ultimate_rttv" and IsValid( urtcam.CamByID[ ent:GetID() ] ) then
+            if ent.IsUltimateRTTV and IsValid( urtcam.CamByID[ ent:GetID() ] ) then
                 local distSqr = plyPos:DistToSqr( ent:GetPos() )
                 if distSqr < closestDistanceSqr then
                     curTV = ent
